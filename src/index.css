@@ -1,0 +1,37 @@
+:root {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #edf2ed;
+  background: #10171b;
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 280px;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, #293a2c80, transparent 65%),
+    radial-gradient(#ffffff0a 1px, transparent 1px);
+  background-size: 100% 100%, 22px 22px;
+}
+
+button,
+select {
+  font: inherit;
+}
+
+::selection {
+  color: #182014;
+  background: #c5ed8b;
+}
