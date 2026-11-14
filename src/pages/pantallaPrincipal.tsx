@@ -25,9 +25,10 @@ function PantallaPrincipal() {
   }
 
   const descubrirCajasAledañas = (cajasAledañas: CajaType[]) => {
+    const cajasAledañasSinMinasAlrededor = cajasAledañas.filter((caja) => !caja.mina);
     setCajas((cajasActuales) =>
       cajasActuales.map((caja) =>
-        cajasAledañas.some((adyacente) => adyacente.posicion === caja.posicion)
+        cajasAledañasSinMinasAlrededor.some((adyacente) => adyacente.posicion === caja.posicion)
           ? { ...caja, descubierta: true }
           : caja,
       ),
@@ -98,7 +99,7 @@ function PantallaPrincipal() {
 
       <section className="mine-box" data-columnas={numeroCajas}>
         {cajas.map((caja) => (
-          <Caja key={caja.posicion} caja={caja} onCambiar={actualizarCaja} />
+          <Caja key={caja.posicion} caja={caja} cajasAledañas={cajasAledañas(caja.id, cajas)} onDescubrirCajasAledañas={descubrirCajasAledañas} onCambiar={actualizarCaja} />
         ))}
       </section>
     </div>
