@@ -6,32 +6,43 @@ function PantallaPrincipal() {
   const [numeroCajas, setNumeroCajas] = useState(8);
   const [cajas, setCajas] = useState<CajaType[]>([]);
 
-  function cajasAledañas(cajaID: number, cajas: CajaType[]) {
-    const valoresBuscados = [
-      cajaID - 1,
-      cajaID + 1,
-      cajaID - numeroCajas,
-      cajaID + numeroCajas,
-      cajaID - numeroCajas - 1,
-      cajaID + numeroCajas + 1,
-      cajaID - numeroCajas + 1,
-      cajaID + numeroCajas - 1,
-    ];
+  function sacarCajasAledañas(
+    cajaID: number,
+    cajas: CajaType[]
+  ): CajaType[] {
+    const fila = Math.floor(cajaID / numeroCajas);
+    const columna = cajaID % numeroCajas;
 
-    const cajasAledañas: CajaType[] = cajas.filter((caja) =>
-      valoresBuscados.includes(caja.id),
-    );
-    return cajasAledañas;
+    return cajas.filter((caja) => {
+      const filaVecina = Math.floor(caja.id / numeroCajas);
+      const columnaVecina = caja.id % numeroCajas;
+
+      return (
+        caja.id !== cajaID &&
+        Math.abs(filaVecina - fila) <= 1 &&
+        Math.abs(columnaVecina - columna) <= 1
+      );
+    });
   }
 
   const descubrirCajasAledañas = (cajasAledañas: CajaType[]) => {
-    const cajasAledañasSinMinasAlrededor = cajasAledañas.filter((caja) => !caja.mina);
+    const cajasAledañasSinMinasAlrededor = cajasAledañas.filter((caja) => {
+      return (
+        !caja.mina &&
+        sacarCajasAledañas(caja.id, cajas).every(
+          (cajaAledaña) => !cajaAledaña.mina
+        )
+      );
+    });
+
     setCajas((cajasActuales) =>
       cajasActuales.map((caja) =>
-        cajasAledañasSinMinasAlrededor.some((adyacente) => adyacente.posicion === caja.posicion)
+        cajasAledañasSinMinasAlrededor.some(
+          (adyacente) => adyacente.id === caja.id
+        )
           ? { ...caja, descubierta: true }
-          : caja,
-      ),
+          : caja
+      )
     );
   };
 
@@ -99,7 +110,7 @@ function PantallaPrincipal() {
 
       <section className="mine-box" data-columnas={numeroCajas}>
         {cajas.map((caja) => (
-          <Caja key={caja.posicion} caja={caja} cajasAledañas={cajasAledañas(caja.id, cajas)} onDescubrirCajasAledañas={descubrirCajasAledañas} onCambiar={actualizarCaja} />
+          <Caja key={caja.posicion} caja={caja} cajasAledañas={sacarCajasAledañas(caja.id, cajas)} onDescubrirCajasAledañas={descubrirCajasAledañas} onCambiar={actualizarCaja} />
         ))}
       </section>
     </div>

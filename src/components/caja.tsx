@@ -17,7 +17,16 @@ type CajaProps = {
 
 function Caja({ caja, cajasAledañas, onCambiar, onDescubrirCajasAledañas }: CajaProps) {
   function descubrirCaja() {
+    if (caja.descubierta || caja.bandera) return;
+
     onCambiar({ ...caja, descubierta: true });
+
+    if (
+      !caja.mina &&
+      cajasAledañas.every((vecina) => !vecina.mina)
+    ) {
+      onDescubrirCajasAledañas(cajasAledañas);
+    }
   }
 
   return (
