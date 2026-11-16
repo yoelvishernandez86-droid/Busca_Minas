@@ -2,75 +2,54 @@ import { useEffect, useState } from "react";
 import Caja, { type CajaType } from "../components/caja";
 import "./pantallaPrincipal.css";
 
+function sacarCajasAledañas(
+  cajaID: number,
+  cajas: CajaType[],
+  numeroCajas: number,
+): CajaType[] {
+  const fila = Math.floor(cajaID / numeroCajas);
+  const columna = cajaID % numeroCajas;
+
+  return cajas.filter((caja) => {
+    const filaVecina = Math.floor(caja.id / numeroCajas);
+    const columnaVecina = caja.id % numeroCajas;
+
+    return (
+      caja.id !== cajaID &&
+      Math.abs(filaVecina - fila) <= 1 &&
+      Math.abs(columnaVecina - columna) <= 1
+    );
+  });
+}
+
 function PantallaPrincipal() {
   const [numeroCajas, setNumeroCajas] = useState(8);
   const [cajas, setCajas] = useState<CajaType[]>([]);
-
-  function sacarCajasAledañas(
-    cajaID: number,
-    cajas: CajaType[]
-  ): CajaType[] {
-    const fila = Math.floor(cajaID / numeroCajas);
-    const columna = cajaID % numeroCajas;
-
-    return cajas.filter((caja) => {
-      const filaVecina = Math.floor(caja.id / numeroCajas);
-      const columnaVecina = caja.id % numeroCajas;
-
-      return (
-        caja.id !== cajaID &&
-        Math.abs(filaVecina - fila) <= 1 &&
-        Math.abs(columnaVecina - columna) <= 1
-      );
-    });
-  }
-
-  const descubrirCajasAledañas = (cajasAledañas: CajaType[]) => {
-    const cajasAledañasSinMinasAlrededor = cajasAledañas.filter((caja) => {
-      return (
-        !caja.mina &&
-        sacarCajasAledañas(caja.id, cajas).every(
-          (cajaAledaña) => !cajaAledaña.mina
-        )
-      );
-    });
-
-    setCajas((cajasActuales) =>
-      cajasActuales.map((caja) =>
-        cajasAledañasSinMinasAlrededor.some(
-          (adyacente) => adyacente.id === caja.id
-        )
-          ? { ...caja, descubierta: true }
-          : caja
-      )
-    );
-  };
-
-  function actualizarCaja(cajaActualizada: CajaType) {
-    setCajas((cajasActuales) =>
-      cajasActuales.map((caja) =>
-        caja.posicion === cajaActualizada.posicion ? cajaActualizada : caja,
-      ),
-    );
-  }
 
   const totalCajas = numeroCajas * numeroCajas;
   const numeroMinas = Math.round(totalCajas * 0.15);
 
   useEffect(() => {
-    // Creamos una lista con las posiciones posibles: 0, 1, 2...
-    const posiciones = Array.from({ length: totalCajas }, (_, i) => i);
+    const posiciones = Array.from(
+      { length: totalCajas },
+      (_, i) => i,
+    );
 
-    // Mezclamos las posiciones al azar
+    // Mezclamos las posiciones.
     for (let i = posiciones.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [posiciones[i], posiciones[j]] = [posiciones[j], posiciones[i]];
+
+      [posiciones[i], posiciones[j]] = [
+        posiciones[j],
+        posiciones[i],
+      ];
     }
 
-    // Las primeras posiciones mezcladas serán las minas
-    const posicionesConMina = new Set(posiciones.slice(0, numeroMinas));
+    const posicionesConMina = new Set(
+      posiciones.slice(0, numeroMinas),
+    );
 
-    // Creamos todas las cajas y actualizamos el estado una sola vez
+    // Primero creamos todas las casillas.
     const cajasNuevas: CajaType[] = Array.from(
       { length: totalCajas },
       (_, i) => ({
@@ -79,11 +58,86 @@ function PantallaPrincipal() {
         mina: posicionesConMina.has(i),
         bandera: false,
         descubierta: false,
+        minasAlrededor: 0,
+        mostrarNumero: false,
       }),
     );
 
-    setCajas(cajasNuevas);
-  }, [totalCajas, numeroMinas]);
+    // Después contamos las minas de sus vecinas.
+    const cajasConNumeros = cajasNuevas.map((caja) => ({
+      ...caja,
+      minasAlrededor: sacarCajasAledañas(
+        caja.id,
+        cajasNuevas,
+        numeroCajas,
+      ).filter((vecina) => vecina.mina).length,
+    }));
+
+    setCajas(cajasConNumeros);
+  }, [numeroCajas, totalCajas, numeroMinas]);
+
+  function descubrirCaja(cajaID: number) {
+    setCajas((cajasActuales) => {
+      const cajaPulsada = cajasActuales.find(
+        (caja) => caja.id === cajaID,
+      );
+
+      if (
+        !cajaPulsada ||
+        cajaPulsada.bandera ||
+        cajaPulsada.descubierta
+      ) {
+        return cajasActuales;
+      }
+
+      const porRevisar: CajaType[] = [cajaPulsada];
+      const idsDescubiertos = new Set<number>();
+
+      while (porRevisar.length > 0) {
+        const caja = porRevisar.pop()!;
+
+        if (
+          caja.bandera ||
+          caja.descubierta ||
+          idsDescubiertos.has(caja.id)
+        ) {
+          continue;
+        }
+
+        idsDescubiertos.add(caja.id);
+
+        // Solo las casillas vacías expanden el descubrimiento.
+        if (!caja.mina && caja.minasAlrededor === 0) {
+          const vecinas = sacarCajasAledañas(
+            caja.id,
+            cajasActuales,
+            numeroCajas,
+          );
+
+          for (const vecina of vecinas) {
+            if (
+              !vecina.mina &&
+              !vecina.bandera &&
+              !idsDescubiertos.has(vecina.id)
+            ) {
+              porRevisar.push(vecina);
+            }
+          }
+        }
+      }
+
+      return cajasActuales.map((caja) =>
+        idsDescubiertos.has(caja.id)
+          ? {
+              ...caja,
+              descubierta: true,
+              mostrarNumero:
+                !caja.mina && caja.minasAlrededor > 0,
+            }
+          : caja,
+      );
+    });
+  }
 
   return (
     <div className="pantalla-principal">
@@ -97,7 +151,9 @@ function PantallaPrincipal() {
           <select
             className="selector-cajas"
             value={numeroCajas}
-            onChange={(evento) => setNumeroCajas(Number(evento.target.value))}
+            onChange={(evento) =>
+              setNumeroCajas(Number(evento.target.value))
+            }
           >
             <option value={8}>8 * 8</option>
             <option value={9}>9 * 9</option>
@@ -110,7 +166,11 @@ function PantallaPrincipal() {
 
       <section className="mine-box" data-columnas={numeroCajas}>
         {cajas.map((caja) => (
-          <Caja key={caja.posicion} caja={caja} cajasAledañas={sacarCajasAledañas(caja.id, cajas)} onDescubrirCajasAledañas={descubrirCajasAledañas} onCambiar={actualizarCaja} />
+          <Caja
+            key={caja.id}
+            caja={caja}
+            onDescubrir={descubrirCaja}
+          />
         ))}
       </section>
     </div>
