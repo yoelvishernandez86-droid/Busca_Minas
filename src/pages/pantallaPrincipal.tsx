@@ -25,29 +25,21 @@ function sacarCajasAledañas(
 function PantallaPrincipal() {
   const [numeroCajas, setNumeroCajas] = useState(8);
   const [cajas, setCajas] = useState<CajaType[]>([]);
-
   const totalCajas = numeroCajas * numeroCajas;
   const numeroMinas = Math.round(totalCajas * 0.15);
+  const [banderas, setBanderas] = useState(numeroMinas);
 
   useEffect(() => {
-    const posiciones = Array.from(
-      { length: totalCajas },
-      (_, i) => i,
-    );
+    const posiciones = Array.from({ length: totalCajas }, (_, i) => i);
 
     // Mezclamos las posiciones.
     for (let i = posiciones.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
 
-      [posiciones[i], posiciones[j]] = [
-        posiciones[j],
-        posiciones[i],
-      ];
+      [posiciones[i], posiciones[j]] = [posiciones[j], posiciones[i]];
     }
 
-    const posicionesConMina = new Set(
-      posiciones.slice(0, numeroMinas),
-    );
+    const posicionesConMina = new Set(posiciones.slice(0, numeroMinas));
 
     // Primero creamos todas las casillas.
     const cajasNuevas: CajaType[] = Array.from(
@@ -78,15 +70,9 @@ function PantallaPrincipal() {
 
   function descubrirCaja(cajaID: number) {
     setCajas((cajasActuales) => {
-      const cajaPulsada = cajasActuales.find(
-        (caja) => caja.id === cajaID,
-      );
+      const cajaPulsada = cajasActuales.find((caja) => caja.id === cajaID);
 
-      if (
-        !cajaPulsada ||
-        cajaPulsada.bandera ||
-        cajaPulsada.descubierta
-      ) {
+      if (!cajaPulsada || cajaPulsada.bandera || cajaPulsada.descubierta) {
         return cajasActuales;
       }
 
@@ -96,11 +82,7 @@ function PantallaPrincipal() {
       while (porRevisar.length > 0) {
         const caja = porRevisar.pop()!;
 
-        if (
-          caja.bandera ||
-          caja.descubierta ||
-          idsDescubiertos.has(caja.id)
-        ) {
+        if (caja.bandera || caja.descubierta || idsDescubiertos.has(caja.id)) {
           continue;
         }
 
@@ -131,12 +113,19 @@ function PantallaPrincipal() {
           ? {
               ...caja,
               descubierta: true,
-              mostrarNumero:
-                !caja.mina && caja.minasAlrededor > 0,
+              mostrarNumero: !caja.mina && caja.minasAlrededor > 0,
             }
           : caja,
       );
     });
+  }
+
+  function ponerBandera(id: number) {
+    setCajas((cajasActuales) =>
+      cajasActuales.map((caja) =>
+        caja.id === id ? { ...caja, bandera: !caja.bandera } : caja,
+      ),
+    );
   }
 
   return (
@@ -151,9 +140,7 @@ function PantallaPrincipal() {
           <select
             className="selector-cajas"
             value={numeroCajas}
-            onChange={(evento) =>
-              setNumeroCajas(Number(evento.target.value))
-            }
+            onChange={(evento) => setNumeroCajas(Number(evento.target.value))}
           >
             <option value={8}>8 * 8</option>
             <option value={9}>9 * 9</option>
@@ -170,6 +157,7 @@ function PantallaPrincipal() {
             key={caja.id}
             caja={caja}
             onDescubrir={descubrirCaja}
+            onPonerBandera={ponerBandera}
           />
         ))}
       </section>
