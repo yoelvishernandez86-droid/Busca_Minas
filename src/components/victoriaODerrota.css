@@ -1,0 +1,72 @@
+.resultado-partida {
+  --resultado-acento: #c5ed8b;
+  width: min(420px, calc(100% - 32px));
+  max-height: calc(100svh - 32px);
+  margin: auto;
+  padding: clamp(24px, 6vw, 36px);
+  overflow-y: auto;
+  border: 1px solid #46565c;
+  border-radius: 20px;
+  color: #edf2ed;
+  background: #1b252b;
+  box-shadow: 0 24px 80px #00000080;
+  text-align: center;
+}
+
+.resultado-partida--derrota {
+  --resultado-acento: #f2a49a;
+}
+
+.resultado-partida::backdrop {
+  background: #080e12cc;
+  backdrop-filter: blur(4px);
+}
+
+.resultado-partida__icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 20px;
+  border: 1px solid #ffffff1a;
+  border-radius: 20px;
+  background: #ffffff08;
+  font-size: 2.5rem;
+}
+
+.resultado-partida > h2 {
+  margin: 0 0 12px;
+  color: var(--resultado-acento);
+  font-size: clamp(1.7rem, 6vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.resultado-partida > p {
+  margin: 0 0 28px;
+  color: #b7c4c4;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.resultado-partida > button {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #182014;
+  background: var(--resultado-acento);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.resultado-partida > button:hover {
+  filter: brightness(1.08);
+}
+
+.resultado-partida > button:focus-visible {
+  outline: 2px solid var(--resultado-acento);
+  outline-offset: 4px;
+}
